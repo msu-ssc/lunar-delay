@@ -1,5 +1,7 @@
 def delay(
-    dss_number: int, ground_time: str, lems_location: tuple[float, float]
+    dss_number: int,
+    ground_time: str,
+    lems_location: tuple[float, float],
 ) -> tuple[float, float]:
     """
     Calculate the propagation delay from the given DSS-## antenna to the given location on the
