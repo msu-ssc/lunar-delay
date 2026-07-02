@@ -5,6 +5,9 @@ build/
 dist/
 wheels/
 *.egg-info
+debug.py
+resources/LDEM_80S_20M.tif
+resources/kernels/de440.bsp
 
 # Virtual environments
 .venv

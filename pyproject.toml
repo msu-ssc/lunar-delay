@@ -5,5 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "pyproj>=3.7.1",
+    "python-dateutil>=2.9.0.post0",
+    "rasterio>=1.4.4",
     "spiceypy>=8.0.0,<8.1.1",
 ]
