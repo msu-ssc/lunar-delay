@@ -87,10 +87,10 @@ if __name__ == "__main__":
     GROUND_TIME = "2027-01-01T00:00:00.0000+00:00"
     LEMS_LOCATION = (-88.0, 0.0)
 
-time_in_flight, time_in_flight_error = delay(
-    dss_number=DSS_STATION,
-    ground_time=GROUND_TIME,
-    lems_location=LEMS_LOCATION,
-)
+    time_in_flight, time_in_flight_error = delay(
+        dss_number=DSS_STATION,
+        ground_time=GROUND_TIME,
+        lems_location=LEMS_LOCATION,
+    )
 
-print(time_in_flight)
+    print(time_in_flight)
