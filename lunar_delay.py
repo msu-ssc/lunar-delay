@@ -37,23 +37,25 @@ def delay(
     curr_folder_location = Path(__file__).resolve().parent
     metakernel_location = curr_folder_location / "resources" / "kernels" / "metakernel.tm"
     dem_location = curr_folder_location / "resources" / "LDEM_80S_20M.tif"
+    error_dem_location = curr_folder_location / "resources" / "LDEM_80S_20MPP_ADJ_ERR.tiff"
     spice_station_id = str(399000 + dss_number) # Ex: DSN-14 -> 14 -> 39014
     body_frame = "MOON_ME" # this matches the convention of the lat/lon
 
     spice.furnsh(str(metakernel_location)) # only takes strings; loads all the kernels
+    c_km_s = spice.clight()
 
     dt = parser.parse(ground_time).astimezone(timezone.utc)
     dt_iso_str = dt.strftime("%Y-%m-%dT%H:%M:%S.%f") 
     et = spice.str2et(dt_iso_str)
 
     dem = LunarDEM(dem_location, scaling_factor=dem_scaling_factor, offset=dem_offset)
-
-    c_km_s = spice.clight()
- 
     r_km = dem.radius(lems_location[0], lems_location[1]) / 1000.0
     lat_rad, lon_rad = np.radians(lems_location[0]), np.radians(lems_location[1])
     body_fixed_km = np.array(spice.latrec(r_km, lon_rad, lat_rad)) # vector for requested location
  
+    error_dem = LunarDEM(error_dem_location, scaling_factor=1, offset=0)
+    height_error_km = error_dem.radius(lems_location[0], lems_location[1]) / 1000.0
+
     lt = 0.0
     for _ in range(max_iter):
         et_arrival = et + lt  # uplink: signal reaches the Moon after lt

@@ -7,7 +7,8 @@ Ensure that the following folder path exists:
 lunar-delay/  
 ├── resources/  
 │   ├── dem_to_spice.py  
-│   ├── LDEM_80S_20M.tif  
+│   ├── LDEM_80S_20M.tif 
+│   ├── LDEM_80S_20MPP_ADJ_ERR.tiff   
 │   └── kernels/  
 │       ├── de440.bsp  
 │       ├── dss_17_prelim_itrf93_190814.bsp  
@@ -24,7 +25,8 @@ lunar-delay/
 └── main.py/  
 
 Due to file size restrictions on GitHub, two files will need to be downloaded seperately:  
-LDEM_80S_20m.tif  
+LDEM_80S_20m.tif (https://pgda.gsfc.nasa.gov/products/90)  
+LDEM_80S_20MPP_ADJ_ERR.tiff (https://pgda.gsfc.nasa.gov/products/90)   
 de440.bsp (https://naif.jpl.nasa.gov/pub/naif/pds/wgc/kernels/spk/de440.bsp)  
 
 
@@ -41,7 +43,7 @@ naif0012.tls - LSK: Leapseconds (as of July 1, 2026)
 pck00011.tpc - PCK: Moon radii and fallback IAU orientation  
 
 ## Why not just use spice.spkpos(..., abcorr="LT", ...)?
-SPICE has a built in "LT" aberration correction, but this has certain limitations. The main limitation is that this works between two vodies that have their own SPK segments, such as the Moon's center and the Earth's center. Since a surface point is being queried, it needs to be reconstructed everytime since is on a rotating and orbiting body. 
+SPICE has a built in "LT" aberration correction, but this has certain limitations. The main limitation is that this works between two bodies that have their own SPK segments, such as the Moon's center and the Earth's center. Since a surface point is being queried, it needs to be reconstructed everytime since it is on a rotating and orbiting body. 
 Functionally, this does the same thing as SPICE, but applied to the reconstructed point. 
 
 

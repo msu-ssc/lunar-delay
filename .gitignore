@@ -7,6 +7,7 @@ wheels/
 *.egg-info
 debug.py
 resources/LDEM_80S_20M.tif
+resources/LDEM_80S_20MPP_ADJ_ERR.tiff
 resources/kernels/de440.bsp
 
 # Virtual environments
