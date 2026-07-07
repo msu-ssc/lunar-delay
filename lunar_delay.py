@@ -30,6 +30,7 @@ def delay(
     import numpy as np
     from resources.dem_to_spice import LunarDEM, surface_point_to_spice, dem_point_to_spice, R_MOON_M
     from resources.station_uncertainty import read_station_sigma_csv, random_station_offset_km
+    from resources.formatted_results import format_result
 
     # Constants affecting light time calculation and uncertainty
     max_iter = 50 # for stepping
@@ -115,10 +116,8 @@ def delay(
  
     lt = lt_samples[0]
     total_uncertainty = float(np.std(lt_samples[1:])) if n_samples > 1 else 0.0
- 
-    return (lt, total_uncertainty)
-
-
+    formatted_lt, formatted_total_uncertainty = format_result(lt, total_uncertainty)
+    return (formatted_lt, formatted_total_uncertainty)
 
 if __name__ == "__main__":
     DSS_STATION = 17
