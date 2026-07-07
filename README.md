@@ -8,16 +8,15 @@ Since the LDEM's used are only for points below 80S, it should only be used for 
 DSS Stations not included in 810-005, 301, Rev. M, Table 7 must be updated in  DSN_Station_Location_Uncertainties.csv. Stations should also be checked if they are included in the kernels. (earthstns_itrf93_201023.bsp). 
 DSS-17 is added to the CSV and a seperate kernel was made for it. 
 ### Time limitations
-Individual kernel coverage (union across all objects in the file):
-  de440.bsp                                [1549-12-30 23:59:18.815 -> 2650-01-24 23:58:50.815]
-  dss_17_prelim_itrf93_190814.bsp          [1949-12-31 23:59:18.816 -> 2049-12-31 23:58:50.816]
-  earth_200101_990827_predict.bpc          [2020-01-01 00:00:00.000 -> 2099-08-27 00:00:00.000]
-  earthstns_itrf93_201023.bsp              [1949-12-31 23:59:18.816 -> 2149-12-31 23:58:50.816]
-  moon_pa_de440_200625.bpc                 [1549-12-30 23:59:18.815 -> 2650-01-24 23:58:50.815]
+Individual kernel coverage (union across all objects in the file):    
+  de440.bsp                                [1549-12-30 23:59:18.815 -> 2650-01-24 23:58:50.815]    
+  dss_17_prelim_itrf93_190814.bsp          [1949-12-31 23:59:18.816 -> 2049-12-31 23:58:50.816]     
+  earth_200101_990827_predict.bpc          [2020-01-01 00:00:00.000 -> 2099-08-27 00:00:00.000]     
+  earthstns_itrf93_201023.bsp              [1949-12-31 23:59:18.816 -> 2149-12-31 23:58:50.816]     
+  moon_pa_de440_200625.bpc                 [1549-12-30 23:59:18.815 -> 2650-01-24 23:58:50.815]       
 
-Time range covered by ALL kernels (safe for computation):
-  2020-01-01 00:00:00.000  ->  2049-12-31 23:58:50.816
-
+Time range covered by ALL kernels (safe for computation):     
+  2020-01-01 00:00:00.000  ->  2049-12-31 23:58:50.816     
 
 
 ## Setup
