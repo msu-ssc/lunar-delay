@@ -38,6 +38,8 @@ Required kernels (furnsh before calling anything that needs et or rotation):
 
 from __future__ import annotations
  
+import warnings
+
 import numpy as np
 import rasterio
 from rasterio.windows import Window
@@ -57,6 +59,74 @@ def _resolve_path(path):
     if isinstance(path, str) and (path.startswith("http://") or path.startswith("https://")):
         return "/vsicurl/" + path
     return path
+
+def _crs_equivalent(crs_a, crs_b):
+    """True if two rasterio CRS objects describe the same projection, even
+    if their WKT differs cosmetically (different tool/authority naming --
+    e.g. an ArcGIS-style "Moon (2015) - Sphere / Ocentric / South Polar"
+    WKT vs a GDAL-style "Moon2000_spole" WKT for the identical stereographic
+    projection on the identical sphere). Plain `crs_a == crs_b` is too
+    strict for this -- it compares WKT/name details that can legitimately
+    differ between a DEM and its companion error raster when they were
+    produced by different pipelines, even though the actual projection
+    (proj type, radius, pole, meridian, false easting/northing) is
+    identical. Falls back to comparing the PROJ4 definition, which is
+    what the coordinate math in this module actually relies on.
+    """
+    if crs_a == crs_b:
+        return True
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            return (
+                CRS.from_wkt(crs_a.to_wkt()).to_proj4()
+                == CRS.from_wkt(crs_b.to_wkt()).to_proj4()
+            )
+    except Exception:
+        return False
+
+# def _derive_err_path(path):
+#     """LDEM_<LAT>_<PIX>MPP_ADJ.TIF -> LDEM_<LAT>_<PIX>MPP_ADJ_ERR.TIF.
+#     Matches the naming convention used across the PGDA product page and
+#     view_ldem.py's derive_err_url. Preserves the original .tif/.TIF case
+#     of the extension rather than forcing uppercase, so this works for
+#     real PGDA files (always uppercase .TIF) and locally-downloaded/
+#     renamed files (which may be lowercase .tif) alike -- matters on
+#     case-sensitive filesystems.
+#     """
+#     if path.upper().endswith("_ERR.TIF"):
+#         return path
+#     if path.upper().endswith(".TIF"):
+#         ext = path[-4:]  # preserve actual case, e.g. ".tif" or ".TIF"
+#         return path[: -len(ext)] + "_ERR" + ext
+#     raise ValueError(
+#         f"Can't auto-derive an _ERR path from: {path!r}; pass error_path explicitly."
+#     )
+ 
+ 
+def _windowed_bilinear(ds, band, row, col, scaling_factor, offset, nrows, ncols):
+    """Bilinear interpolation using only the 2x2 pixel neighborhood around
+    (row, col), read via a rasterio windowed read -- shared by LunarDEM's
+    height and error lookups so both get the same memory-efficient,
+    remote-COG-friendly access pattern.
+    """
+    r0, c0 = int(np.floor(row)), int(np.floor(col))
+    r1, c1 = r0 + 1, c0 + 1
+    if r0 < 0 or c0 < 0 or r1 >= nrows or c1 >= ncols:
+        raise ValueError(
+            f"lat/lon maps to pixel (row={row:.1f}, col={col:.1f}), "
+            f"outside this raster ({nrows}x{ncols}) -- wrong tile for "
+            "this coordinate, or point is off-tile."
+        )
+    window = Window(c0, r0, 2, 2)
+    raw = ds.read(band, window=window).astype(np.float32)
+    vals = raw * scaling_factor + offset
+    h00, h01 = vals[0, 0], vals[0, 1]
+    h10, h11 = vals[1, 0], vals[1, 1]
+    dr, dc = row - r0, col - c0
+    top = h00 + dc * (h01 - h00)
+    bot = h10 + dc * (h11 - h10)
+    return float(top + dr * (bot - top))
 
 class LunarDEM:
     """
@@ -84,7 +154,10 @@ class LunarDEM:
     """
  
     def __init__(self, path, scaling_factor=0.5, offset=R_MOON_M,
-                 offset_is_radius=True, band=1):
+                 offset_is_radius=True, band=1,
+                 error_path=None, error_scaling_factor=1.0, error_offset=0.0,
+                 error_band=1):
+        self._orig_path = path
         self._ds = rasterio.open(_resolve_path(path))
         self._transform = self._ds.transform
         self._inv_transform = ~self._transform
@@ -94,6 +167,15 @@ class LunarDEM:
         self.offset_is_radius = offset_is_radius
         self._nrows = self._ds.height
         self._ncols = self._ds.width
+ 
+        # Error raster is opened lazily on first .error() call -- see
+        # _ensure_error_ds -- so constructing a LunarDEM never does an
+        # extra (possibly remote) open you didn't ask for.
+        self._err_ds = None
+        self._error_path = error_path
+        self._error_scaling_factor = error_scaling_factor
+        self._error_offset = error_offset
+        self._error_band = error_band
  
         # Spherical lunar lat/lon (what your lat/lon columns already are) ->
         # whatever CRS this specific raster was written in.
@@ -110,28 +192,33 @@ class LunarDEM:
         return row, col
  
     def _bilinear(self, row, col):
-        r0, c0 = int(np.floor(row)), int(np.floor(col))
-        r1, c1 = r0 + 1, c0 + 1
-        if r0 < 0 or c0 < 0 or r1 >= self._nrows or c1 >= self._ncols:
-            raise ValueError(
-                f"lat/lon maps to pixel (row={row:.1f}, col={col:.1f}), "
-                f"outside this DEM tile ({self._nrows}x{self._ncols}) -- "
-                "wrong tile for this coordinate, or point is off-tile."
+        return _windowed_bilinear(
+            self._ds, self._band, row, col,
+            self._scaling_factor, self._offset, self._nrows, self._ncols,
+        )
+ 
+    def _ensure_error_ds(self):
+        if self._err_ds is None:
+            path = self._error_path #or _derive_err_path(self._orig_path)
+            ds = rasterio.open(_resolve_path(path))
+ 
+            same_shape = (ds.width, ds.height) == (self._ncols, self._nrows)
+            same_transform = all(
+                abs(a - b) < 1e-6 for a, b in zip(ds.transform, self._transform)
             )
-        # Windowed read: only the 2x2 neighborhood bilinear interpolation
-        # needs. For a remote COG this fetches one small internal tile
-        # over HTTP (cached by GDAL for nearby follow-up queries), not
-        # the whole file; for a local file it skips loading the rest of
-        # the array into RAM.
-        window = Window(c0, r0, 2, 2)
-        raw = self._ds.read(self._band, window=window).astype(np.float32)
-        vals = raw * self._scaling_factor + self._offset
-        h00, h01 = vals[0, 0], vals[0, 1]
-        h10, h11 = vals[1, 0], vals[1, 1]
-        dr, dc = row - r0, col - c0
-        top = h00 + dc * (h01 - h00)
-        bot = h10 + dc * (h11 - h10)
-        return float(top + dr * (bot - top))
+            same_crs = _crs_equivalent(ds.crs, self._ds.crs)
+ 
+            if not (same_shape and same_transform and same_crs):
+                ds.close()
+                raise ValueError(
+                    f"Error raster grid ({ds.width}x{ds.height}, transform={ds.transform}, "
+                    f"crs={ds.crs}) doesn't match height raster grid "
+                    f"({self._ncols}x{self._nrows}, transform={self._transform}, "
+                    f"crs={self._ds.crs}). Pass error_path explicitly if the auto-derived "
+                    f"path ({path!r}) is wrong for this tile."
+                )
+            self._err_ds = ds
+        return self._err_ds
  
     def radius(self, lat_deg, lon_deg):
         """Distance from the Moon's center at this lat/lon, in meters."""
@@ -145,8 +232,43 @@ class LunarDEM:
         value = self._bilinear(row, col)
         return value - R_MOON_M if self.offset_is_radius else value
  
+    def error(self, lat_deg, lon_deg):
+        """Interpolated height error/uncertainty (in meters) at this
+        lat/lon, read from the companion _ERR.TIF raster. Uses the same
+        bilinear scheme as height() -- both because it's cheap/consistent,
+        and because it's equivalent to formal error propagation under the
+        (realistic, for adjacent grid cells) assumption that the four
+        corner errors are correlated rather than independent.
+        """
+        err_ds = self._ensure_error_ds()
+        # Same grid as the height raster (checked in _ensure_error_ds), so
+        # the row/col computed from the height transform applies directly.
+        row, col = self._pixel_coords(lat_deg, lon_deg)
+        return _windowed_bilinear(
+            err_ds, self._error_band, row, col,
+            self._error_scaling_factor, self._error_offset,
+            self._nrows, self._ncols,
+        )
+ 
+    def radius_and_error(self, lat_deg, lon_deg):
+        """Convenience: (radius_m, error_m) in one call -- one pixel-coord
+        computation shared between the two windowed reads.
+        """
+        row, col = self._pixel_coords(lat_deg, lon_deg)
+        value = self._bilinear(row, col)
+        r = value if self.offset_is_radius else value + R_MOON_M
+        err_ds = self._ensure_error_ds()
+        err = _windowed_bilinear(
+            err_ds, self._error_band, row, col,
+            self._error_scaling_factor, self._error_offset,
+            self._nrows, self._ncols,
+        )
+        return r, err
+ 
     def close(self):
         self._ds.close()
+        if self._err_ds is not None:
+            self._err_ds.close()
  
     def __enter__(self):
         return self

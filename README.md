@@ -46,5 +46,10 @@ pck00011.tpc - PCK: Moon radii and fallback IAU orientation
 SPICE has a built in "LT" aberration correction, but this has certain limitations. The main limitation is that this works between two bodies that have their own SPK segments, such as the Moon's center and the Earth's center. Since a surface point is being queried, it needs to be reconstructed everytime since it is on a rotating and orbiting body. 
 Functionally, this does the same thing as SPICE, but applied to the reconstructed point. 
 
+## Uncertainty Rationale
+### Ground stations
+For all ground stations, except DSS-17, their positional uncertainty is pulled from Table 7 in this document (DSN handbook 810-005, Section 301.): https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301M.pdf. 
+Since DSS-17 is not included in this table, another source had to be used. I struggled to find documented numbers for DSS-17, so I assumed a larger error bar of 50m in all directions.
 
-
+### LDEM Values
+Thankfully, there is an associated LDEM map that gives the associated uncertainties per pixel here, LDEM_80S_20MPP_ADJ_ERR.tiff (https://pgda.gsfc.nasa.gov/products/90). Since this is a discrete map, the same interpolation is used for this error map as the height map, bilinear interpolation. This provides a weighted sum between the 4 corners of the queried point, providing height from LDEM_80S_20m.tif and error from LDEM_80S_20MPP_ADJ_ERR.tiff. 
