@@ -76,3 +76,5 @@ Since DSS-17 is not included in this table, another source had to be used. I str
 
 ### LDEM Values
 Thankfully, there is an associated LDEM map that gives the associated uncertainties per pixel here, LDEM_80S_20MPP_ADJ_ERR.tiff (https://pgda.gsfc.nasa.gov/products/90). Since this is a discrete map, the same interpolation is used for this error map as the height map, bilinear interpolation. This provides a weighted sum between the 4 corners of the queried point, providing height from LDEM_80S_20m.tif and error from LDEM_80S_20MPP_ADJ_ERR.tiff. 
+
+## How is the analysis performed?
