@@ -3,7 +3,7 @@ The objective of this code is to calculate the light time (time of flight) betwe
 
 ## Limitations
 ### LDEM Limitations
-Since the LDEM's used are only for points below 80S, it should only be used for this points. The LDEMs also only have a 20m resolution. 
+Since the LDEM's used are only for points below 80S, it should only be used for this points. The LDEMs also only have a 20m resolution. Any points in-between the grid are bilinearly interpolated.
 ### DSS Limitations
 DSS Stations not included in 810-005, 301, Rev. M, Table 7 must be updated in  DSN_Station_Location_Uncertainties.csv. Stations should also be checked if they are included in the kernels. (earthstns_itrf93_201023.bsp). 
 DSS-17 is added to the CSV and a seperate kernel was made for it. 
