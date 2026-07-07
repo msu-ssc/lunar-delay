@@ -84,7 +84,7 @@ A target latitude and longitude point is determined. This is taken and the corre
 Two main sourcces feed uncertainty: positional error of DSN stations, positional error of terrain. Both of these sources get perturbed together on every Monte Carlo sample rather than two seperate runs. The station's positional error comes from three 1-sigma numbers (spin radius, longitude, height from Earth's axis) which get nudged using the station's own frame then rotated into J2000. The terrain error is given from the DEM's own per-pixel uncertainty at that spot, which gets nudged along the Moon's radius. 
 
 ## External Resources
-https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301M.pdf
-https://pgda.gsfc.nasa.gov/products/90
-https://naif.jpl.nasa.gov/pub/naif/pds/wgc/kernels/spk/de440.bsp
-https://naif.jpl.nasa.gov/pub/naif/pds/wgc/kernels/
+https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301M.pdf   
+https://pgda.gsfc.nasa.gov/products/90    
+https://naif.jpl.nasa.gov/pub/naif/pds/wgc/kernels/spk/de440.bsp    
+https://naif.jpl.nasa.gov/pub/naif/pds/wgc/kernels/    

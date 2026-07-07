@@ -7,6 +7,8 @@ wheels/
 *.egg-info
 debug.py
 debug2.py
+light_time_geometry_and_iteration.png
+monte_carlo_uncertainty_pipeline.png
 resources/LDEM_80S_20M.tif
 resources/LDEM_80S_20MPP_ADJ_ERR.tiff
 resources/kernels/de440.bsp

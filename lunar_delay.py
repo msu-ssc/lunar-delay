@@ -20,7 +20,6 @@ def delay(
     `flight_time` is the speed-of-light transmission time from the antenna to the LEMS location
     `error` is an estimate of the maximum total accumulated uncertainty
     """
-    # TODO: Implement this
 
     from dateutil import parser
     from datetime import timezone
@@ -84,9 +83,7 @@ def delay(
                 spice_station_id, et, station_sigma, rng
             )
             # Independent terrain-height nudge, drawn fresh each sample and
-            # applied alongside the station offset -- see module docstring
-            # for why these two need to be perturbed together rather than
-            # combined analytically after two separate Monte Carlos.
+            # applied alongside the station offset
             sample_r_km = r_km + rng.normal(0.0, error_km)
             sample_body_fixed_km = np.array(spice.latrec(sample_r_km, lon_rad, lat_rad))
  
