@@ -8,7 +8,8 @@ Since the LDEM's used are only for points below 80S, it should only be used for 
 DSS Stations not included in 810-005, 301, Rev. M, Table 7 must be updated in  DSN_Station_Location_Uncertainties.csv. Stations should also be checked if they are included in the kernels. (earthstns_itrf93_201023.bsp). 
 DSS-17 is added to the CSV and a seperate kernel was made for it. 
 ### Time limitations
-Individual kernel coverage (union across all objects in the file):    
+Individual kernel coverage (union across all objects in the file): 
+<pre>   
   de440.bsp                                [1549-12-30 23:59:18.815 -> 2650-01-24 23:58:50.815]    
   dss_17_prelim_itrf93_190814.bsp          [1949-12-31 23:59:18.816 -> 2049-12-31 23:58:50.816]     
   earth_200101_990827_predict.bpc          [2020-01-01 00:00:00.000 -> 2099-08-27 00:00:00.000]     
@@ -17,11 +18,12 @@ Individual kernel coverage (union across all objects in the file):
 
 Time range covered by ALL kernels (safe for computation):     
   2020-01-01 00:00:00.000  ->  2049-12-31 23:58:50.816     
-
+</pre>
 
 ## Setup
 Python3.10  
-Ensure that the following folder path exists:   
+Ensure that the following folder path exists:  
+<pre> 
 lunar-delay/  
 ├── resources/  
 │   ├── dem_to_spice.py  
@@ -41,7 +43,7 @@ lunar-delay/
 │       └── pck00011.tpc  
 ├── lunar-delay.py/  
 └── main.py/  
-
+</pre>
 Due to file size restrictions on GitHub, these files will need to be downloaded seperately:  
 LDEM_80S_20m.tif (https://pgda.gsfc.nasa.gov/products/90)  
 LDEM_80S_20MPP_ADJ_ERR.tiff (https://pgda.gsfc.nasa.gov/products/90)   
