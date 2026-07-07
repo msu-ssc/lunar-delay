@@ -82,3 +82,9 @@ Thankfully, there is an associated LDEM map that gives the associated uncertaint
 A target latitude and longitude point is determined. This is taken and the corresponding height is found from the LDEM. This is fixed on the Moon's body frame. Now the challenge is to find where this point in in inertial space when the signal arrives as the Moon rotates and orbits. So the target's position depends on et_arrival = et + lt, which depends on lt, which is what is being solved for. This begins a circular cycle of iteration. So, it starts with a guess of lt=0, work out where the target actually is at the guessed arrival time, measure the resulting distance, convert to a new lt, and repeat. Each pass re-orients the Moon and SPICE relocates the Moon's center. Eventually, this convergence to a value with a set tolerance (1e-9). 
 ### Uncertainty
 Two main sourcces feed uncertainty: positional error of DSN stations, positional error of terrain. Both of these sources get perturbed together on every Monte Carlo sample rather than two seperate runs. The station's positional error comes from three 1-sigma numbers (spin radius, longitude, height from Earth's axis) which get nudged using the station's own frame then rotated into J2000. The terrain error is given from the DEM's own per-pixel uncertainty at that spot, which gets nudged along the Moon's radius. 
+
+## External Resources
+https://deepspace.jpl.nasa.gov/dsndocs/810-005/301/301M.pdf
+https://pgda.gsfc.nasa.gov/products/90
+https://naif.jpl.nasa.gov/pub/naif/pds/wgc/kernels/spk/de440.bsp
+https://naif.jpl.nasa.gov/pub/naif/pds/wgc/kernels/
